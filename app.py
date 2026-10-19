@@ -19,16 +19,32 @@ st.caption("AI-assisted legal document drafting, editing and downloading.")
 
 st.info("This application creates drafts for educational/general-information use. It is not legal advice. Have an appropriately qualified lawyer review documents before real-world use.")
 
-def get_client():
+def get_api_key():
+    # Streamlit Community Cloud exposes app credentials through st.secrets;
+    # environment variables and .env remain supported for other deployments.
     key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not key or key == "AQ.Ab8RN6ISGUpycFXbx1lRTtliZvj8q8a0VSxr0ZNex8lBA7eZFw":
+    if not key:
+        try:
+            key = str(st.secrets.get("GEMINI_API_KEY", "")).strip()
+        except Exception:
+            # Streamlit raises when no secrets file/settings are configured.
+            key = ""
+    return key
+
+def get_client():
+    key = get_api_key()
+    if not key:
         return None
     return genai.Client(api_key=key)
 
 def generate_with_gemini(doc_type, parties, terms, effective_date):
     client = get_client()
     if client is None:
-        raise ValueError("GEMINI_API_KEY is missing. Add it to the .env file and restart the app.")
+        raise ValueError(
+            "Gemini API key is not configured. In Streamlit Community Cloud, "
+            "open your app's Settings → Secrets and add GEMINI_API_KEY = \"your-key\". "
+            "For local use, add GEMINI_API_KEY=your-key to a .env file."
+        )
 
     prompt = f"""
 You are a legal-document drafting assistant.
@@ -103,6 +119,12 @@ with st.sidebar:
     )
     effective_date = st.date_input("Effective date", value=date.today())
     generate = st.button("✨ Generate with Gemini", type="primary", use_container_width=True)
+
+if not get_api_key():
+    st.warning(
+        "Gemini API key is not configured. Add `GEMINI_API_KEY` under "
+        "your Streamlit Community Cloud app's **Settings > Secrets** to enable generation."
+    )
 
 if "document" not in st.session_state:
     st.session_state.document = ""
