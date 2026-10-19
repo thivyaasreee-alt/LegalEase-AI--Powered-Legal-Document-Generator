@@ -21,7 +21,7 @@ st.info("This application creates drafts for educational/general-information use
 
 def get_client():
     key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not key or key == "PASTE_YOUR_API_KEY_HERE":
+    if not key or key == "AQ.Ab8RN6ISGUpycFXbx1lRTtliZvj8q8a0VSxr0ZNex8lBA7eZFw":
         return None
     return genai.Client(api_key=key)
 
